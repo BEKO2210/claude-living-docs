@@ -1,6 +1,8 @@
-name: Auto Update Docs
+name: CI & Auto Update Docs
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
     paths:
@@ -48,15 +50,18 @@ jobs:
       - name: Tests (pytest + coverage)
         run: pytest --cov=src --cov-report=term-missing --cov-fail-under=90
 
-      - name: Regenerate documentation
-        run: python scripts/update_all.py
+      # On a pull request we only *verify*: fail if the committed docs no longer
+      # match the sources. Nothing is written or pushed.
+      - name: Drift check (PR gate)
+        if: github.event_name == 'pull_request'
+        run: living-docs check
 
-      - name: Drift check
-        run: python scripts/update_all.py --check
-
-      - name: Commit regenerated docs
+      # On main (or cron/dispatch) the doc bot regenerates and commits any
+      # changes, so the checked-in docs are always current.
+      - name: Regenerate & commit docs
         if: github.event_name != 'pull_request'
         run: |
+          living-docs update
           if [ -n "$(git status --porcelain docs/)" ]; then
             git config user.name "living-docs-bot"
             git config user.email "bot@users.noreply.github.com"

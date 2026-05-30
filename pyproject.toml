@@ -13,6 +13,16 @@ authors = [{ name = "Living Docs Engine" }]
 keywords = ["documentation", "ast", "codegen", "automation"]
 dependencies = []
 
+[project.scripts]
+living-docs = "living_docs.cli:main"
+
+[tool.living_docs]
+source = "src"
+docs = "docs"
+features = "config/features.json"
+prompts = "config/prompts.json"
+changelog = true
+
 [project.optional-dependencies]
 # Tools used by the benchmark harness to compare against real-world generators.
 bench = ["pdoc>=14", "sphinx>=7"]

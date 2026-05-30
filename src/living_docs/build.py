@@ -44,15 +44,17 @@ def run_git(args: list[str], *, cwd: Path | None = None) -> str:
     return result.stdout.strip()
 
 
-def resolve_timestamp() -> str:
-    """Resolve a deterministic ISO-8601 build timestamp.
+def resolve_timestamp(root: Path | None = None) -> str:
+    """Resolve a deterministic ISO-8601 build timestamp for ``root``.
 
     Resolution order:
 
     1. ``LIVING_DOCS_TIMESTAMP`` — explicit override (used by tests/CI).
     2. ``SOURCE_DATE_EPOCH`` — the reproducible-builds standard.
-    3. The HEAD commit date — stable for a given checkout.
-    4. A fixed Unix-epoch fallback.
+    3. The date of the last commit touching the doc inputs — stable, and
+       unchanged by doc-only commits, so ``--check`` stays green afterwards.
+    4. The HEAD commit date.
+    5. A fixed Unix-epoch fallback.
     """
     override = os.environ.get("LIVING_DOCS_TIMESTAMP")
     if override:
@@ -62,16 +64,14 @@ def resolve_timestamp() -> str:
     if epoch and epoch.isdigit():
         return datetime.fromtimestamp(int(epoch), tz=UTC).isoformat()
 
-    # Scope to the inputs that actually affect generated docs. Doc-only
-    # commits then leave the timestamp untouched, so `--check` stays green
-    # after the generated docs are committed.
     scoped = run_git(
-        ["log", "-1", "--format=%cI", "--", "src", "config", "pyproject.toml"]
+        ["log", "-1", "--format=%cI", "--", "src", "config", "pyproject.toml"],
+        cwd=root,
     )
     if scoped:
         return scoped
 
-    commit_date = run_git(["log", "-1", "--format=%cI"])
+    commit_date = run_git(["log", "-1", "--format=%cI"], cwd=root)
     if commit_date:
         return commit_date
 

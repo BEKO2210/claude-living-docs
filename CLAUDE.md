@@ -53,13 +53,19 @@ reine Build-Artefakte und werden bei jedem Lauf neu erzeugt.
 └── .github/workflows/
 └── auto_update_docs.yml   # CI: Generatoren + Tests + Auto-Commit## 🛠️ Befehle
 
-| Zweck | Befehl |
-|---|---|
-| Alle Docs neu generieren | `python scripts/update_all.py` |
-| Einzelnen Generator | `python scripts/generate_api_docs.py` |
-| Tests | `pytest -v` |
-| Benchmarks | `python benchmarks/bench_generation.py` |
-| Drift-Check (CI) | `python scripts/update_all.py --check` |
+| Zweck | Befehl (CLI, empfohlen) | Befehl (Scripts, legacy) |
+|---|---|---|
+| Alle Docs neu generieren | `living-docs update` | `python scripts/update_all.py` |
+| Einzelnen Generator | — | `python scripts/generate_api_docs.py` |
+| Config scaffolden | `living-docs init` | — |
+| Tests | `pytest -v` | |
+| Benchmarks | `living-docs bench` | `python benchmarks/bench_generation.py` |
+| Drift-Check (CI) | `living-docs check` | `python scripts/update_all.py --check` |
+| Anderes Projekt | `living-docs -C <pfad> update` | — |
+
+> Das `living-docs`-CLI ist config-getrieben (`[tool.living_docs]` in
+> `pyproject.toml`, sonst Zero-Config `src/` → `docs/`) und läuft auf **jedem**
+> Python-Projekt. Die `scripts/` sind dünne Wrapper auf dieselbe Engine.
 
 ## 🧪 Benchmark-Anforderung
 

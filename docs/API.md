@@ -1,11 +1,11 @@
 # API Reference
 
-*🤖 AUTO-GENERATED on 2026-05-30T22:32:28+00:00 — do not edit manually*
+*🤖 AUTO-GENERATED on 2026-05-30T22:52:57+00:00 — do not edit manually*
 
 ## Overview
 
 - Modules documented: **9**
-- Callables: **25** (25 with docstrings, **100.0%** coverage)
+- Callables: **26** (26 with docstrings, **100.0%** coverage)
 
 ## Benchmarks
 
@@ -26,11 +26,11 @@ Living Docs Engine — generate documentation directly from source code.
 
 The package is split into three cooperating layers:
 
-* :mod:`living_docs.extractors` turns Python source into immutable, typed
+* `living_docs.extractors` turns Python source into immutable, typed
   data structures (pure parsing, no rendering).
-* :mod:`living_docs.generators` turns those data structures — plus feature,
+* `living_docs.generators` turns those data structures — plus feature,
   changelog and prompt data — into Markdown (pure rendering, no I/O).
-* :mod:`living_docs.build` holds shared build utilities (deterministic
+* `living_docs.build` holds shared build utilities (deterministic
   timestamps, idempotent file writing, repository discovery).
 
 Keeping extraction, rendering and I/O separate is what makes every generator
@@ -97,8 +97,7 @@ _Source: `living_docs/cli.py`_
 
 The ``living-docs`` command-line interface.
 
-One command for the whole workflow on **any** Python project::
-
+One command for the whole workflow on **any** Python project:
     living-docs init      # scaffold optional config (features/prompts)
     living-docs update    # (re)generate docs/
     living-docs check     # drift detection (exit 1 if stale)
@@ -127,7 +126,7 @@ lets the same engine document *any* Python project, not just this repository.
 
 #### `def load_config(root: Path, *, overrides: dict[str, object] | None = None) -> ProjectConfig`
 
-Build a :class:`ProjectConfig` for ``root`` from defaults + pyproject.
+Build a `ProjectConfig` for ``root`` from defaults + pyproject.
 
 ### class `ProjectConfig`
 
@@ -137,7 +136,7 @@ Resolved, absolute paths and flags for one project.
 
 _Source: `living_docs/engine.py`_
 
-Turn a :class:`ProjectConfig` into a set of generated documents.
+Turn a `ProjectConfig` into a set of generated documents.
 
 This is the single place that decides *which* documents a project gets and
 wires the sources to the renderers. Both the CLI and the thin ``scripts/``
@@ -163,18 +162,18 @@ _Source: `living_docs/extractors.py`_
 
 AST-based extraction of public API metadata from Python source files.
 
-This module walks Python source using the standard library :mod:`ast` module
+This module walks Python source using the standard library `ast` module
 and produces immutable, fully typed data structures describing the modules,
 classes and functions it finds. It performs **no** rendering and never
 imports the analysed code, which keeps extraction fast and side-effect free.
 
-The output is consumed by :mod:`living_docs.generators`.
+The output is consumed by `living_docs.generators`.
 
 ### Functions
 
 #### `def extract_source(source: str, *, module_name: str, path: str = '<string>', include_private: bool = False) -> ModuleDoc`
 
-Parse ``source`` and return a :class:`ModuleDoc`.
+Parse ``source`` and return a `ModuleDoc`.
 
 Only top-level functions and classes are collected. Names starting with
 an underscore are skipped unless ``include_private`` is true.
@@ -235,6 +234,14 @@ which is what makes the generators deterministic and idempotent.
 
 ### Functions
 
+#### `def rest_to_markdown(text: str) -> str`
+
+Convert the reST markup that turns up in docstrings to Markdown.
+
+Handles cross-reference roles (```x```, ```x```, …) and the
+trailing ``::`` literal-block marker. Double-backtick inline literals are
+already valid Markdown code spans, so they are left as-is.
+
 #### `def auto_generated_header(generated_at: str) -> str`
 
 Return the mandated AUTO-GENERATED banner line for ``generated_at``.
@@ -279,17 +286,17 @@ Load the inputs that feed the generators.
 
 Everything here turns an external source — a JSON config file, the git history,
 the benchmark results — into the typed dataclasses defined in
-:mod:`living_docs.generators`. No Markdown is produced here.
+`living_docs.generators`. No Markdown is produced here.
 
 ### Functions
 
 #### `def load_features(path: Path) -> list[Feature]`
 
-Parse a ``features.json`` file into :class:`Feature` objects.
+Parse a ``features.json`` file into `Feature` objects.
 
 #### `def load_prompts(path: Path) -> list[Prompt]`
 
-Parse a ``prompts.json`` file into :class:`Prompt` objects.
+Parse a ``prompts.json`` file into `Prompt` objects.
 
 #### `def load_benchmarks(root: Path) -> list[BenchmarkRow]`
 

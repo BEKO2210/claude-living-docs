@@ -1,6 +1,6 @@
 # API Reference
 
-*🤖 AUTO-GENERATED on 2026-05-30T22:26:45Z — do not edit manually*
+*🤖 AUTO-GENERATED on 2026-05-30T22:32:28+00:00 — do not edit manually*
 
 ## Overview
 

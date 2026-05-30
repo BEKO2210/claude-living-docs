@@ -1,0 +1,68 @@
+name: Auto Update Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "config/**"
+      - "pyproject.toml"
+      - "scripts/**"
+      - ".github/workflows/auto_update_docs.yml"
+  schedule:
+    # Daily at 04:17 UTC — keeps the changelog and timestamps fresh.
+    - cron: "17 4 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-update-docs-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the changelog generator sees all tags and commits.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Type-check (mypy)
+        run: mypy --strict src/
+
+      - name: Tests (pytest + coverage)
+        run: pytest --cov=src --cov-report=term-missing --cov-fail-under=90
+
+      - name: Regenerate documentation
+        run: python scripts/update_all.py
+
+      - name: Drift check
+        run: python scripts/update_all.py --check
+
+      - name: Commit regenerated docs
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ -n "$(git status --porcelain docs/)" ]; then
+            git config user.name "living-docs-bot"
+            git config user.email "bot@users.noreply.github.com"
+            git add docs/
+            git commit -m "docs: regenerate documentation [auto-docs] [skip ci]"
+            git push
+          else
+            echo "No documentation changes."
+          fi

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/living-docs/schema/main/features.schema.json",
+  "features": [
+    {
+      "name": "AST API Extraction",
+      "status": "stable",
+      "since": "0.1.0",
+      "description": "Parses Python source with the stdlib ast module and extracts modules, classes, functions, parameters, type hints and decorators without importing the code.",
+      "tags": ["core", "extraction"]
+    },
+    {
+      "name": "Drift Detection",
+      "status": "stable",
+      "since": "0.1.0",
+      "description": "The --check mode regenerates every document into a temporary directory and diffs it against docs/, exiting non-zero when committed docs are stale.",
+      "tags": ["ci", "safety"]
+    },
+    {
+      "name": "Benchmark Harness",
+      "status": "beta",
+      "since": "0.1.0",
+      "description": "Measures generation wall-clock time, output size and docstring coverage against pdoc and sphinx-apidoc, writing real measured numbers to benchmarks/results.json.",
+      "tags": ["benchmark", "tooling"]
+    }
+  ]
+}

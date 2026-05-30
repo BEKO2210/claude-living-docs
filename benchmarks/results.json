@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-05-30T23:59:51+02:00",
+  "source": "src/living_docs",
+  "runs": 10,
+  "doc_coverage_pct": 100.0,
+  "tools": [
+    {
+      "tool": "living-docs",
+      "median_ms": 4.607,
+      "stdev_ms": 0.478,
+      "output_lines": 177,
+      "notes": "AST \u2192 single Markdown file"
+    },
+    {
+      "tool": "pdoc",
+      "median_ms": 397.042,
+      "stdev_ms": 15.503,
+      "output_lines": 111,
+      "notes": "HTML site"
+    },
+    {
+      "tool": "sphinx-apidoc",
+      "median_ms": 271.141,
+      "stdev_ms": 16.415,
+      "output_lines": 44,
+      "notes": "reST stub files"
+    }
+  ]
+}

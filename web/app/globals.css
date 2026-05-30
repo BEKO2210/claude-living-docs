@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #04050a;
+  --color-ink: #0a0c14;
+  --color-cyan: #38f0d8;
+  --color-violet: #a06bff;
+  --color-blue: #3b82f6;
+  --color-haze: #8b93b8;
+
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-void);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--color-void);
+  color: #eef1ff;
+  font-family: var(--font-display);
+  overflow-x: hidden;
+}
+
+/* Lenis smooth-scroll baseline */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-cyan) 35%, transparent);
+  color: #fff;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-void);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--color-violet), var(--color-cyan));
+  border-radius: 99px;
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(110deg, #fff 10%, var(--color-cyan) 45%, var(--color-violet) 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-glow {
+    text-shadow: 0 0 28px color-mix(in srgb, var(--color-cyan) 45%, transparent);
+  }
+  .glass {
+    background: color-mix(in srgb, var(--color-ink) 70%, transparent);
+    backdrop-filter: blur(14px);
+    border: 1px solid color-mix(in srgb, #fff 8%, transparent);
+  }
+  .ring-glow {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-cyan) 30%, transparent),
+      0 0 40px -8px color-mix(in srgb, var(--color-violet) 50%, transparent);
+  }
+  /* faint engineering grid */
+  .bg-grid {
+    background-image:
+      linear-gradient(color-mix(in srgb, #fff 4%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, #fff 4%, transparent) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+}
+
+/* film grain overlay */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 0.6s steps(2) infinite;
+}
+@keyframes grain {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-6%, 4%);
+  }
+}
+
+/* reveal helper — elements start hidden, GSAP animates them in */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  will-change: transform, opacity;
+}

@@ -13,6 +13,7 @@ from living_docs.generators import (
     render_changelog,
     render_features,
     render_prompts,
+    rest_to_markdown,
 )
 
 TS = "2024-01-01T00:00:00+00:00"
@@ -28,6 +29,33 @@ def documented(x: int) -> int:
 def undocumented(y):
     return y
 '''
+
+
+def test_rest_to_markdown_converts_roles_and_literal_blocks():
+    assert rest_to_markdown(":mod:`living_docs.build`") == "`living_docs.build`"
+    assert rest_to_markdown("Build a :class:`ProjectConfig` here.") == "Build a `ProjectConfig` here."
+    assert rest_to_markdown(":func:`render_api`") == "`render_api`"
+    # Trailing reST literal-block marker becomes a single colon.
+    assert rest_to_markdown("the whole workflow::") == "the whole workflow:"
+    # Double-backtick code spans are valid Markdown already and stay intact.
+    assert rest_to_markdown("Run ``git log`` now") == "Run ``git log`` now"
+    # Plain text is untouched.
+    assert rest_to_markdown("nothing to convert") == "nothing to convert"
+
+
+def test_rendered_api_has_no_rest_role_artifacts():
+    src = '''"""Uses :mod:`os` internally."""
+
+
+def f() -> None:
+    """Wrap :class:`Foo` and stop."""
+'''
+    module = extract_source(src, module_name="m")
+    out = render_api([module], generated_at=TS)
+    assert ":mod:`" not in out
+    assert ":class:`" not in out
+    assert "`os`" in out
+    assert "`Foo`" in out
 
 
 def test_header_format_is_exact():

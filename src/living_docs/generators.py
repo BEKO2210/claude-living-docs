@@ -7,10 +7,31 @@ which is what makes the generators deterministic and idempotent.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
 from .extractors import ClassDoc, FunctionDoc, ModuleDoc, count_coverage
+
+# reST inline markup commonly found in docstrings, mapped to plain Markdown.
+_REST_ROLE_RE = re.compile(r":\w+:`([^`]+)`")
+_REST_LITERAL_BLOCK_RE = re.compile(r"::\s*$", re.MULTILINE)
+
+
+def rest_to_markdown(text: str) -> str:
+    """Convert the reST markup that turns up in docstrings to Markdown.
+
+    Handles cross-reference roles (``:mod:`x```, ``:class:`x```, …) and the
+    trailing ``::`` literal-block marker. Double-backtick inline literals are
+    already valid Markdown code spans, so they are left as-is.
+    """
+    text = _REST_ROLE_RE.sub(r"`\1`", text)
+    return _REST_LITERAL_BLOCK_RE.sub(":", text)
+
+
+def _docstring(doc: str | None, *, fallback: str) -> str:
+    """Return a cleaned docstring for rendering, or ``fallback`` if empty."""
+    return rest_to_markdown(doc.strip()) if doc else fallback
 
 __all__ = [
     "BenchmarkRow",
@@ -22,6 +43,7 @@ __all__ = [
     "render_changelog",
     "render_features",
     "render_prompts",
+    "rest_to_markdown",
 ]
 
 
@@ -83,7 +105,7 @@ def _render_function(func: FunctionDoc) -> list[str]:
         lines.append(f"- decorator: `@{decorator}`")
     if func.decorators:
         lines.append("")
-    lines.append(func.docstring.strip() if func.docstring else "_No docstring._")
+    lines.append(_docstring(func.docstring, fallback="_No docstring._"))
     lines.append("")
     return lines
 
@@ -91,7 +113,7 @@ def _render_function(func: FunctionDoc) -> list[str]:
 def _render_class(klass: ClassDoc) -> list[str]:
     bases = f"({', '.join(klass.bases)})" if klass.bases else ""
     lines = [f"### class `{klass.name}{bases}`", ""]
-    lines.append(klass.docstring.strip() if klass.docstring else "_No docstring._")
+    lines.append(_docstring(klass.docstring, fallback="_No docstring._"))
     lines.append("")
     for method in klass.methods:
         lines.extend(_render_function(method))
@@ -144,7 +166,7 @@ def render_api(
         body.append("")
         body.append(f"_Source: `{module.path}`_")
         body.append("")
-        body.append(module.docstring.strip() if module.docstring else "_No module docstring._")
+        body.append(_docstring(module.docstring, fallback="_No module docstring._"))
         body.append("")
 
         if module.functions:

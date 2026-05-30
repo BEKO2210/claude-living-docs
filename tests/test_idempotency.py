@@ -61,6 +61,15 @@ def test_resolve_timestamp_falls_back_to_git(monkeypatch):
     assert build.resolve_timestamp(build.repo_root())
 
 
+def test_normalize_unifies_z_and_offset_forms():
+    # `Z` and `+00:00` are the same instant; git versions disagree on which to
+    # emit, so resolve_timestamp must canonicalise them to one string.
+    assert build._normalize("2026-05-30T22:26:45Z") == "2026-05-30T22:26:45+00:00"
+    assert build._normalize("2026-05-30T22:26:45+00:00") == "2026-05-30T22:26:45+00:00"
+    # Non-parseable input is returned untouched.
+    assert build._normalize("not-a-date") == "not-a-date"
+
+
 def test_run_git_returns_empty_on_failure():
     assert build.run_git(["not-a-real-subcommand-xyz"]) == ""
 

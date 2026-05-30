@@ -69,13 +69,26 @@ def resolve_timestamp(root: Path | None = None) -> str:
         cwd=root,
     )
     if scoped:
-        return scoped
+        return _normalize(scoped)
 
     commit_date = run_git(["log", "-1", "--format=%cI"], cwd=root)
     if commit_date:
-        return commit_date
+        return _normalize(commit_date)
 
     return _FALLBACK_TIMESTAMP
+
+
+def _normalize(timestamp: str) -> str:
+    """Canonicalise an ISO-8601 string so it is environment-independent.
+
+    Different git versions render a UTC commit date as either ``...+00:00`` or
+    ``...Z``. Both denote the same instant, but a raw string compare would make
+    the drift check flap between machines, so we parse and re-emit one form.
+    """
+    try:
+        return datetime.fromisoformat(timestamp).isoformat()
+    except ValueError:
+        return timestamp
 
 
 def write_text(path: Path, content: str) -> bool:

@@ -118,6 +118,9 @@ def _extract_parameters(args: ast.arguments) -> tuple[Parameter, ...]:
         params.append(
             Parameter("*" + args.vararg.arg, _annotation(args.vararg.annotation), None)
         )
+    elif args.kwonlyargs:
+        # Keyword-only args with no ``*args`` still need a bare ``*`` separator.
+        params.append(Parameter("*", None, None))
 
     for arg, default_node in zip(args.kwonlyargs, args.kw_defaults, strict=True):
         default = ast.unparse(default_node) if default_node is not None else None

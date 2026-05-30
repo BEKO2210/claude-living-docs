@@ -17,19 +17,47 @@ code + config + git  ──▶  extractors (AST)  ──▶  generators (Markdow
 
 ## 60-second quickstart
 
+One install, one command — on **any** Python project:
+
 ```bash
-git clone https://github.com/beko2210/claude-living-docs
-cd claude-living-docs
+pip install -e .          # registers the `living-docs` CLI
 
-python -m pip install -e ".[dev]"   # ruff, mypy, pytest, pdoc, sphinx
-
-python scripts/update_all.py        # (re)generate docs/
-python scripts/update_all.py --check  # drift detection (exit 1 if stale)
-
-ruff check . && mypy --strict src/  # lint + types
-pytest --cov=src                    # tests + coverage
-python benchmarks/bench_generation.py  # benchmark vs pdoc & sphinx
+living-docs update        # (re)generate docs/  (zero-config: src/ → docs/)
+living-docs check         # drift detection (exit 1 if stale)
 ```
+
+That's the whole onboarding. The other commands:
+
+```bash
+living-docs init          # scaffold optional config/ (features + prompts)
+living-docs bench         # benchmark vs pdoc & sphinx-apidoc
+living-docs -C ../other update   # run against a different project
+```
+
+### Use it on your own project
+
+It works **out of the box** on a `src/` layout. For anything else, add a few
+lines to your `pyproject.toml`:
+
+```toml
+[tool.living_docs]
+source = "."              # or "src", "mypackage", an absolute path…
+docs = "docs"
+features = "config/features.json"   # optional
+prompts = "config/prompts.json"     # optional
+changelog = true
+include_private = false
+```
+
+<details><summary>Developer commands (this repo)</summary>
+
+```bash
+pip install -e ".[dev]"             # + ruff, mypy, pytest, pdoc, sphinx
+ruff check . && mypy --strict src/
+pytest --cov=src
+python scripts/update_all.py        # legacy wrapper, same engine
+```
+</details>
 
 ## What gets generated
 
@@ -54,9 +82,9 @@ Generating the API docs for `src/living_docs` against real tools
 
 | Tool | Median (ms) | Output lines | What it produces |
 | --- | ---: | ---: | --- |
-| **living-docs** | **4.63** | 177 | single Markdown file |
-| pdoc | 395.19 | 111 | HTML site |
-| sphinx-apidoc | 244.40 | 44 | reST stub files |
+| **living-docs** | **9.12** | 292 | single Markdown file |
+| pdoc | 402.78 | 531 | HTML site |
+| sphinx-apidoc | 238.78 | 84 | reST stub files |
 
 Docstring coverage of `src/`: **100%**. Numbers are measured on the machine
 that last ran the harness — re-run `python benchmarks/bench_generation.py` to
@@ -67,8 +95,8 @@ refresh them.
 Click **“Use this template”** on GitHub (or copy the repo). Then:
 
 1. Replace the code in `src/` with your own package.
-2. Edit `config/features.json` and `config/prompts.json`.
-3. Run `python scripts/update_all.py` and commit.
+2. Run `living-docs init` to scaffold `config/features.json` and `config/prompts.json`.
+3. Run `living-docs update` and commit.
 
 The [`.github/workflows/auto_update_docs.yml`](.github/workflows/auto_update_docs.yml)
 workflow regenerates the docs on every push to `main` (and daily), then a doc
@@ -77,11 +105,14 @@ bot commits any changes for you.
 ## Project layout
 
 ```
-src/living_docs/   extractors.py (AST) · generators.py (Markdown) · build.py
-scripts/           generate_*.py · update_all.py (orchestrator + --check)
+src/living_docs/   cli.py (living-docs command) · config.py · engine.py
+                   extractors.py (AST) · generators.py (Markdown)
+                   sources.py (JSON + git) · benchmark.py · build.py
+scripts/           thin generate_*.py + update_all.py wrappers (same engine)
 config/            features.json · prompts.json
 benchmarks/        bench_generation.py · results.json
 tests/             test_extractors · test_generators · test_idempotency
+                   test_config · test_sources · test_cli (real end-to-end)
 docs/              AUTO-GENERATED — do not edit
 ```
 

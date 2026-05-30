@@ -42,23 +42,6 @@ def test_build_all_is_byte_identical_and_complete():
     assert set(first) == {"API.md", "FEATURES.md", "CHANGELOG.md", "PROMPTS.md"}
 
 
-def test_update_all_check_passes_against_committed_docs(tmp_path, capsys):
-    # Writing then immediately checking must report no drift.
-    documents = update_all.build_all(TS)
-    for name, content in documents.items():
-        (tmp_path / name).write_text(content, encoding="utf-8")
-    rc = update_all._check(documents, tmp_path)
-    assert rc == 0
-    assert "up to date" in capsys.readouterr().out
-
-
-def test_update_all_check_detects_drift(tmp_path):
-    documents = update_all.build_all(TS)
-    # Leave docs dir empty -> everything is "drifted".
-    rc = update_all._check(documents, tmp_path)
-    assert rc == 1
-
-
 def test_resolve_timestamp_prefers_explicit_override(monkeypatch):
     monkeypatch.setenv("LIVING_DOCS_TIMESTAMP", "2030-12-31T12:00:00+00:00")
     assert build.resolve_timestamp() == "2030-12-31T12:00:00+00:00"
@@ -75,7 +58,7 @@ def test_resolve_timestamp_falls_back_to_git(monkeypatch):
     monkeypatch.delenv("LIVING_DOCS_TIMESTAMP", raising=False)
     monkeypatch.delenv("SOURCE_DATE_EPOCH", raising=False)
     # In this repository git is available, so a real ISO date comes back.
-    assert build.resolve_timestamp()
+    assert build.resolve_timestamp(build.repo_root())
 
 
 def test_run_git_returns_empty_on_failure():

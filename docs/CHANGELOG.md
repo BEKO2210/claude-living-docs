@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- docs: feature the cinematic visualization site in the README
+- feat: cinematic Next.js site visualizing the project
 - feat: clean reST markup in output + gate CI on pull requests
 - docs: add honest cost/benefit & when-to-use guidance
 - fix: normalise build timestamp so drift check doesn't flap across git versions

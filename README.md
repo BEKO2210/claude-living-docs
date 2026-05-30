@@ -16,6 +16,11 @@ when the committed docs no longer match the sources), *not* raw speed.
 code + config + git  ──▶  extractors (AST)  ──▶  generators (Markdown)  ──▶  docs/
 ```
 
+[![Living Docs — cinematic scroll site](web/preview.png)](web/)
+
+> ☝︎ There's also a **cinematic, scroll-driven website** that visualizes the whole
+> engine — Next.js · Tailwind · GSAP/ScrollTrigger · Lenis. See [`web/`](#visualization-web).
+
 ## 60-second quickstart
 
 Click **“Use this template”** on GitHub (or clone the repo), then:
@@ -120,6 +125,24 @@ payoff comes from two things the numbers don't show:
    stale" into a failing CI job. That guarantee is the actual product; the
    generated Markdown is just the by-product.
 
+## Visualization (`web/`)
+
+A standalone, scroll-driven site that tells the project's story in seven acts —
+hero, the problem, the `code → AST → Markdown → docs` pipeline (scroll-scrubbed),
+the module constellation, the drift-check terminal going red → green, the
+measured benchmarks, and a CTA. Built with **Next.js (App Router) · Tailwind CSS
+v4 · GSAP + ScrollTrigger · Lenis**; every number comes from real project data.
+
+```bash
+cd web
+npm install
+npm run dev        # http://localhost:3000
+npm run build      # static export → web/out/ (deploy anywhere)
+```
+
+It's fully self-contained under [`web/`](web/) and doesn't touch the Python
+engine. See [`web/README.md`](web/README.md) for details and sub-path hosting.
+
 ## Developer commands
 
 ```bash
@@ -145,6 +168,7 @@ benchmarks/        bench_generation.py · results.json
 tests/             test_extractors · test_generators · test_idempotency
                    test_config · test_sources · test_cli (real end-to-end)
 docs/              AUTO-GENERATED — do not edit
+web/               cinematic Next.js + Tailwind + GSAP visualization site
 ```
 
 See [`CLAUDE.md`](CLAUDE.md) for the full architecture and conventions.

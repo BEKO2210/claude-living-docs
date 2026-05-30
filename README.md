@@ -1,15 +1,16 @@
 # claude-living-docs
 
 [![Auto Update Docs](https://github.com/beko2210/claude-living-docs/actions/workflows/auto_update_docs.yml/badge.svg)](https://github.com/beko2210/claude-living-docs/actions/workflows/auto_update_docs.yml)
-![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-97%25-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![Checked with mypy](https://img.shields.io/badge/mypy-strict-blue)
 ![Lint: ruff](https://img.shields.io/badge/lint-ruff-orange)
 
-**Self-updating documentation.** The docs are never hand-written — they are
-**generated from the code, config and git history** on every run. The source
-of truth is the code; everything in [`docs/`](docs/) is a build artifact and is
-regenerated each time.
+**Your Markdown docs never rot — because here, "the docs are wrong" is a CI
+failure, not a silent problem.** API reference, changelog and feature matrix are
+generated from the code, config and git history, so they can't drift out of
+sync. The killer feature is the **drift check** (`living-docs check` → exit 1
+when the committed docs no longer match the sources), *not* raw speed.
 
 ```
 code + config + git  ──▶  extractors (AST)  ──▶  generators (Markdown)  ──▶  docs/
@@ -17,27 +18,23 @@ code + config + git  ──▶  extractors (AST)  ──▶  generators (Markdow
 
 ## 60-second quickstart
 
-One install, one command — on **any** Python project:
+Click **“Use this template”** on GitHub (or clone the repo), then:
 
 ```bash
+git clone https://github.com/beko2210/claude-living-docs
+cd claude-living-docs
 pip install -e .          # registers the `living-docs` CLI
 
 living-docs update        # (re)generate docs/  (zero-config: src/ → docs/)
-living-docs check         # drift detection (exit 1 if stale)
+living-docs check         # drift detection — exit 1 if docs are stale
 ```
 
-That's the whole onboarding. The other commands:
+That's the whole onboarding: **one install, one command per project.** Point it
+at any other project with `living-docs -C ../other update`. Other commands:
+`living-docs init` (scaffold optional config), `living-docs bench`.
 
-```bash
-living-docs init          # scaffold optional config/ (features + prompts)
-living-docs bench         # benchmark vs pdoc & sphinx-apidoc
-living-docs -C ../other update   # run against a different project
-```
-
-### Use it on your own project
-
-It works **out of the box** on a `src/` layout. For anything else, add a few
-lines to your `pyproject.toml`:
+It works out of the box on a `src/` layout. For anything else, add a few lines
+to your `pyproject.toml`:
 
 ```toml
 [tool.living_docs]
@@ -49,15 +46,28 @@ changelog = true
 include_private = false
 ```
 
-<details><summary>Developer commands (this repo)</summary>
+## When it's worth it — and when it isn't
 
-```bash
-pip install -e ".[dev]"             # + ruff, mypy, pytest, pdoc, sphinx
-ruff check . && mypy --strict src/
-pytest --cov=src
-python scripts/update_all.py        # legacy wrapper, same engine
-```
-</details>
+Be realistic before adopting this. It is not free: you carry a code generator
+(~1180 lines of Python + tests) so that documentation maintenance drops to zero.
+
+**✅ Worth it when:**
+
+- You ship a **library or public API** where reference docs *must* stay correct.
+- You have **multiple repos** — the CLI is reusable, so the per-project cost
+  trends to zero (`pip install`, one command, done).
+- You work in a **team with many contributors** and docs rot between PRs.
+- You want **Markdown that's guaranteed current** as LLM / `CLAUDE.md` context
+  or as a GitHub README — not a stale `.md` nobody updates.
+
+**❌ Overkill when:**
+
+- It's a **one-off / throwaway script** — the generator is bigger than the docs
+  it produces, so the ROI is negative (see [ROI](#roi-be-honest) below).
+- You need a **real documentation *website*** with search, cross-links and
+  rendered source. Use [pdoc](https://pdoc.dev) or
+  [Sphinx](https://www.sphinx-doc.org) for that — this tool deliberately emits a
+  single Markdown file, not a site.
 
 ## What gets generated
 
@@ -71,14 +81,19 @@ python scripts/update_all.py        # legacy wrapper, same engine
 Every generator writes an `AUTO-GENERATED` header, is fully typed
 (`mypy --strict`), and is **idempotent**: running it twice produces
 byte-identical output. The timestamp is resolved deterministically (from
-`LIVING_DOCS_TIMESTAMP`, `SOURCE_DATE_EPOCH` or the last source commit), so
-the CI drift check stays meaningful.
+`LIVING_DOCS_TIMESTAMP`, `SOURCE_DATE_EPOCH` or the last source commit, in a
+git-version-independent form), so the CI drift check never flaps.
+
+### Scope: reference docs only
+
+This generates **reference documentation only** — signatures, type hints,
+docstrings, changelog, feature table. It does **not** write tutorials,
+conceptual guides or any prose. Those still belong to a human.
 
 ## Benchmarks
 
-Generating the API docs for `src/living_docs` against real tools
-(`timeit`, 10 runs, median ± stdev — numbers from
-[`benchmarks/results.json`](benchmarks/results.json)):
+Generating the API docs for `src/` against real tools (`timeit`, 10 runs,
+median ± stdev — numbers from [`benchmarks/results.json`](benchmarks/results.json)):
 
 | Tool | Median (ms) | Output lines | What it produces |
 | --- | ---: | ---: | --- |
@@ -86,17 +101,33 @@ Generating the API docs for `src/living_docs` against real tools
 | pdoc | 402.78 | 531 | HTML site |
 | sphinx-apidoc | 238.78 | 84 | reST stub files |
 
-Docstring coverage of `src/`: **100%**. Numbers are measured on the machine
-that last ran the harness — re-run `python benchmarks/bench_generation.py` to
-refresh them.
+**Read this honestly: it's an apples-to-oranges comparison.** pdoc and Sphinx
+build a whole HTML site with search and cross-links; living-docs builds *one*
+Markdown file. "Faster" is true but not the point — pick the tool that matches
+the output you actually want. Likewise the docstring coverage figure (100% for
+`src/`) is **garbage in, garbage out**: it only measures what's already in the
+code. Thin docstrings → thin docs (pluggy, for example, comes out at ~52%).
 
-## Use this as a template
+## ROI (be honest)
 
-Click **“Use this template”** on GitHub (or copy the repo). Then:
+For *this* repo the generator is ~1180 lines of code producing ~370 lines of
+docs — a **negative ROI if you only ever document one small project**. The
+payoff comes from two things the numbers don't show:
 
-1. Replace the code in `src/` with your own package.
-2. Run `living-docs init` to scaffold `config/features.json` and `config/prompts.json`.
-3. Run `living-docs update` and commit.
+1. **Reuse** — the same CLI documents every repo you own at near-zero marginal
+   cost.
+2. **Enforced correctness** — the drift check turns "the docs are probably
+   stale" into a failing CI job. That guarantee is the actual product; the
+   generated Markdown is just the by-product.
+
+## Developer commands
+
+```bash
+pip install -e ".[dev]"             # + ruff, mypy, pytest, pdoc, sphinx
+ruff check . && mypy --strict src/
+pytest --cov=src
+python scripts/update_all.py        # legacy wrapper — same engine as the CLI
+```
 
 The [`.github/workflows/auto_update_docs.yml`](.github/workflows/auto_update_docs.yml)
 workflow regenerates the docs on every push to `main` (and daily), then a doc

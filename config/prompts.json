@@ -1,0 +1,24 @@
+{
+  "prompts": [
+    {
+      "title": "Regenerate all documentation",
+      "category": "Maintenance",
+      "body": "Run `python scripts/update_all.py`, then show me the git diff for docs/ and explain in one sentence per file what changed and why."
+    },
+    {
+      "title": "Add a new generator",
+      "category": "Extension",
+      "body": "Create scripts/generate_<name>.py following the existing generators: a `generate(generated_at)` function returning {filename: markdown}, an AUTO-GENERATED header, idempotent output. Register it in scripts/update_all.py and add a test in tests/."
+    },
+    {
+      "title": "Investigate a drift-check failure",
+      "category": "CI",
+      "body": "`python scripts/update_all.py --check` failed in CI. Diff the committed docs/ against freshly generated output, identify which source change was not reflected, and tell me whether the fix is to regenerate or to revert."
+    },
+    {
+      "title": "Refresh the benchmark numbers",
+      "category": "Maintenance",
+      "body": "Run `python benchmarks/bench_generation.py`, commit the updated benchmarks/results.json and docs/API.md, and summarise how our generation time compares to pdoc and sphinx-apidoc."
+    }
+  ]
+}
